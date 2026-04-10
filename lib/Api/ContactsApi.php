@@ -1,7 +1,7 @@
 <?php
 
 /**
- * ReportingApi
+ * ContactsApi
  * PHP version 5
  *
  * @category Class
@@ -41,7 +41,7 @@ use MailchimpMarketing\Configuration;
 use MailchimpMarketing\HeaderSelector;
 use MailchimpMarketing\ObjectSerializer;
 
-class ReportingApi
+class ContactsApi
 {
     protected $client;
     protected $config;
@@ -63,15 +63,15 @@ class ReportingApi
         return $this->config;
     }
 
-    public function getFacebookAdsReportAll($fields = null, $exclude_fields = null, $count = '10', $offset = '0', $sort_field = null, $sort_dir = null)
+    public function createAudienceContact($body, $audience_id, $merge_field_validation_mode = null, $data_mode = null)
     {
-        $response = $this->getFacebookAdsReportAllWithHttpInfo($fields, $exclude_fields, $count, $offset, $sort_field, $sort_dir);
+        $response = $this->createAudienceContactWithHttpInfo($body, $audience_id, $merge_field_validation_mode, $data_mode);
         return $response;
     }
 
-    public function getFacebookAdsReportAllWithHttpInfo($fields = null, $exclude_fields = null, $count = '10', $offset = '0', $sort_field = null, $sort_dir = null)
+    public function createAudienceContactWithHttpInfo($body, $audience_id, $merge_field_validation_mode = null, $data_mode = null)
     {
-        $request = $this->getFacebookAdsReportAllRequest($fields, $exclude_fields, $count, $offset, $sort_field, $sort_dir);
+        $request = $this->createAudienceContactRequest($body, $audience_id, $merge_field_validation_mode, $data_mode);
 
         try {
             $options = $this->createHttpClientOption();
@@ -107,14 +107,355 @@ class ReportingApi
         }
     }
 
-    protected function getFacebookAdsReportAllRequest($fields = null, $exclude_fields = null, $count = '10', $offset = '0', $sort_field = null, $sort_dir = null)
+    protected function createAudienceContactRequest($body, $audience_id, $merge_field_validation_mode = null, $data_mode = null)
     {
-        if ($count !== null && $count > 1000) {
-            throw new \InvalidArgumentException('invalid value for "$count" when calling ReportingApi., must be smaller than or equal to 1000.');
+        // verify the required parameter 'body' is set
+        if ($body === null || (is_array($body) && count($body) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $body when calling '
+            );
+        }
+        // verify the required parameter 'audience_id' is set
+        if ($audience_id === null || (is_array($audience_id) && count($audience_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $audience_id when calling '
+            );
+        }
+
+        $resourcePath = '/audiences/{audience_id}/contacts';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+        // query params
+        if ($merge_field_validation_mode !== null) {
+            $queryParams['merge_field_validation_mode'] = ObjectSerializer::toQueryValue($merge_field_validation_mode);
+        }
+        // query params
+        if ($data_mode !== null) {
+            $queryParams['data_mode'] = ObjectSerializer::toQueryValue($data_mode);
+        }
+
+        // path params
+        if ($audience_id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'audience_id' . '}',
+                ObjectSerializer::toPathValue($audience_id),
+                $resourcePath
+            );
+        }
+
+        // body params
+        $_tempBody = null;
+        if (isset($body)) {
+            $_tempBody = $body;
+        }
+
+        if ($multipart) {
+            $headers = $this->headerSelector->selectHeadersForMultipart(
+                ['application/json', 'application/problem+json']
+            );
+        } else {
+            $headers = $this->headerSelector->selectHeaders(
+                ['application/json', 'application/problem+json'],
+                ['application/json']
+            );
+        }
+
+        // for model (json/xml)
+        if (isset($_tempBody)) {
+            $httpBody = $_tempBody;
+
+            if($headers['Content-Type'] === 'application/json') {
+                if ($httpBody instanceof \stdClass) {
+                    $httpBody = \GuzzleHttp\json_encode($httpBody);
+                }
+                if (is_array($httpBody)) {
+                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
+                }
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $multipartContents[] = [
+                        'name' => $formParamName,
+                        'contents' => $formParamValue
+                    ];
+                }
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif ($headers['Content-Type'] === 'application/json') {
+                $httpBody = \GuzzleHttp\json_encode($formParams);
+
+            } else {
+                $httpBody = Query::build($formParams);
+            }
         }
 
 
-        $resourcePath = '/reporting/facebook-ads';
+        // Basic Authentication
+        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
+            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
+        }
+
+        // OAuth Authentication
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $query = Query::build($queryParams);
+        return new Request(
+            'POST',
+            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    public function getAudienceContactId($audience_id, $contact_id, $fields = null, $exclude_fields = null)
+    {
+        $response = $this->getAudienceContactIdWithHttpInfo($audience_id, $contact_id, $fields, $exclude_fields);
+        return $response;
+    }
+
+    public function getAudienceContactIdWithHttpInfo($audience_id, $contact_id, $fields = null, $exclude_fields = null)
+    {
+        $request = $this->getAudienceContactIdRequest($audience_id, $contact_id, $fields, $exclude_fields);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw $e;
+            }
+
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    $response->getBody()
+                );
+            }
+
+            $responseBody = $response->getBody();
+            $content = $responseBody->getContents();
+            $content = json_decode($content);
+
+            return $content;
+
+        } catch (ApiException $e) {
+            throw $e->getResponseBody();
+        }
+    }
+
+    protected function getAudienceContactIdRequest($audience_id, $contact_id, $fields = null, $exclude_fields = null)
+    {
+        // verify the required parameter 'audience_id' is set
+        if ($audience_id === null || (is_array($audience_id) && count($audience_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $audience_id when calling '
+            );
+        }
+        // verify the required parameter 'contact_id' is set
+        if ($contact_id === null || (is_array($contact_id) && count($contact_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $contact_id when calling '
+            );
+        }
+
+        $resourcePath = '/audiences/{audience_id}/contacts/{contact_id}';
+        $formParams = [];
+        $queryParams = [];
+        $headerParams = [];
+        $httpBody = '';
+        $multipart = false;
+        // query params
+        if (is_array($fields)) {
+            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
+        } else
+        if ($fields !== null) {
+            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
+        }
+        // query params
+        if (is_array($exclude_fields)) {
+            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
+        } else
+        if ($exclude_fields !== null) {
+            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
+        }
+
+        // path params
+        if ($audience_id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'audience_id' . '}',
+                ObjectSerializer::toPathValue($audience_id),
+                $resourcePath
+            );
+        }
+        // path params
+        if ($contact_id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'contact_id' . '}',
+                ObjectSerializer::toPathValue($contact_id),
+                $resourcePath
+            );
+        }
+
+        // body params
+        $_tempBody = null;
+
+        if ($multipart) {
+            $headers = $this->headerSelector->selectHeadersForMultipart(
+                ['application/json', 'application/problem+json']
+            );
+        } else {
+            $headers = $this->headerSelector->selectHeaders(
+                ['application/json', 'application/problem+json'],
+                ['application/json']
+            );
+        }
+
+        // for model (json/xml)
+        if (isset($_tempBody)) {
+            $httpBody = $_tempBody;
+
+            if($headers['Content-Type'] === 'application/json') {
+                if ($httpBody instanceof \stdClass) {
+                    $httpBody = \GuzzleHttp\json_encode($httpBody);
+                }
+                if (is_array($httpBody)) {
+                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
+                }
+            }
+        } elseif (count($formParams) > 0) {
+            if ($multipart) {
+                $multipartContents = [];
+                foreach ($formParams as $formParamName => $formParamValue) {
+                    $multipartContents[] = [
+                        'name' => $formParamName,
+                        'contents' => $formParamValue
+                    ];
+                }
+                $httpBody = new MultipartStream($multipartContents);
+
+            } elseif ($headers['Content-Type'] === 'application/json') {
+                $httpBody = \GuzzleHttp\json_encode($formParams);
+
+            } else {
+                $httpBody = Query::build($formParams);
+            }
+        }
+
+
+        // Basic Authentication
+        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
+            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
+        }
+
+        // OAuth Authentication
+        if (!empty($this->config->getAccessToken())) {
+            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
+        }
+
+        $defaultHeaders = [];
+        if ($this->config->getUserAgent()) {
+            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
+        }
+
+        $headers = array_merge(
+            $defaultHeaders,
+            $headerParams,
+            $headers
+        );
+
+        $query = Query::build($queryParams);
+        return new Request(
+            'GET',
+            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
+            $headers,
+            $httpBody
+        );
+    }
+
+    public function listAudienceContactList($audience_id, $fields = null, $exclude_fields = null, $count = '10', $cursor = null, $created_before = null, $created_since = null, $updated_before = null, $updated_since = null, $sort_field = null, $sort_dir = null)
+    {
+        $response = $this->listAudienceContactListWithHttpInfo($audience_id, $fields, $exclude_fields, $count, $cursor, $created_before, $created_since, $updated_before, $updated_since, $sort_field, $sort_dir);
+        return $response;
+    }
+
+    public function listAudienceContactListWithHttpInfo($audience_id, $fields = null, $exclude_fields = null, $count = '10', $cursor = null, $created_before = null, $created_since = null, $updated_before = null, $updated_since = null, $sort_field = null, $sort_dir = null)
+    {
+        $request = $this->listAudienceContactListRequest($audience_id, $fields, $exclude_fields, $count, $cursor, $created_before, $created_since, $updated_before, $updated_since, $sort_field, $sort_dir);
+
+        try {
+            $options = $this->createHttpClientOption();
+            try {
+                $response = $this->client->send($request, $options);
+            } catch (RequestException $e) {
+                throw $e;
+            }
+
+            $statusCode = $response->getStatusCode();
+
+            if ($statusCode < 200 || $statusCode > 299) {
+                throw new ApiException(
+                    sprintf(
+                        '[%d] Error connecting to the API (%s)',
+                        $statusCode,
+                        $request->getUri()
+                    ),
+                    $statusCode,
+                    $response->getHeaders(),
+                    $response->getBody()
+                );
+            }
+
+            $responseBody = $response->getBody();
+            $content = $responseBody->getContents();
+            $content = json_decode($content);
+
+            return $content;
+
+        } catch (ApiException $e) {
+            throw $e->getResponseBody();
+        }
+    }
+
+    protected function listAudienceContactListRequest($audience_id, $fields = null, $exclude_fields = null, $count = '10', $cursor = null, $created_before = null, $created_since = null, $updated_before = null, $updated_since = null, $sort_field = null, $sort_dir = null)
+    {
+        // verify the required parameter 'audience_id' is set
+        if ($audience_id === null || (is_array($audience_id) && count($audience_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $audience_id when calling '
+            );
+        }
+        if ($count !== null && $count > 1000) {
+            throw new \InvalidArgumentException('invalid value for "$count" when calling ContactsApi., must be smaller than or equal to 1000.');
+        }
+
+
+        $resourcePath = '/audiences/{audience_id}/contacts';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -139,8 +480,24 @@ class ReportingApi
             $queryParams['count'] = ObjectSerializer::toQueryValue($count);
         }
         // query params
-        if ($offset !== null) {
-            $queryParams['offset'] = ObjectSerializer::toQueryValue($offset);
+        if ($cursor !== null) {
+            $queryParams['cursor'] = ObjectSerializer::toQueryValue($cursor);
+        }
+        // query params
+        if ($created_before !== null) {
+            $queryParams['created_before'] = ObjectSerializer::toQueryValue($created_before);
+        }
+        // query params
+        if ($created_since !== null) {
+            $queryParams['created_since'] = ObjectSerializer::toQueryValue($created_since);
+        }
+        // query params
+        if ($updated_before !== null) {
+            $queryParams['updated_before'] = ObjectSerializer::toQueryValue($updated_before);
+        }
+        // query params
+        if ($updated_since !== null) {
+            $queryParams['updated_since'] = ObjectSerializer::toQueryValue($updated_since);
         }
         // query params
         if ($sort_field !== null) {
@@ -151,162 +508,11 @@ class ReportingApi
             $queryParams['sort_dir'] = ObjectSerializer::toQueryValue($sort_dir);
         }
 
-
-        // body params
-        $_tempBody = null;
-
-        if ($multipart) {
-            $headers = $this->headerSelector->selectHeadersForMultipart(
-                ['application/json', 'application/problem+json']
-            );
-        } else {
-            $headers = $this->headerSelector->selectHeaders(
-                ['application/json', 'application/problem+json'],
-                ['application/json']
-            );
-        }
-
-        // for model (json/xml)
-        if (isset($_tempBody)) {
-            $httpBody = $_tempBody;
-
-            if($headers['Content-Type'] === 'application/json') {
-                if ($httpBody instanceof \stdClass) {
-                    $httpBody = \GuzzleHttp\json_encode($httpBody);
-                }
-                if (is_array($httpBody)) {
-                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
-                }
-            }
-        } elseif (count($formParams) > 0) {
-            if ($multipart) {
-                $multipartContents = [];
-                foreach ($formParams as $formParamName => $formParamValue) {
-                    $multipartContents[] = [
-                        'name' => $formParamName,
-                        'contents' => $formParamValue
-                    ];
-                }
-                $httpBody = new MultipartStream($multipartContents);
-
-            } elseif ($headers['Content-Type'] === 'application/json') {
-                $httpBody = \GuzzleHttp\json_encode($formParams);
-
-            } else {
-                $httpBody = Query::build($formParams);
-            }
-        }
-
-
-        // Basic Authentication
-        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
-            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
-        }
-
-        // OAuth Authentication
-        if (!empty($this->config->getAccessToken())) {
-            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        $defaultHeaders = [];
-        if ($this->config->getUserAgent()) {
-            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
-        }
-
-        $headers = array_merge(
-            $defaultHeaders,
-            $headerParams,
-            $headers
-        );
-
-        $query = Query::build($queryParams);
-        return new Request(
-            'GET',
-            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
-            $headers,
-            $httpBody
-        );
-    }
-
-    public function getFacebookAdReport($outreach_id, $fields = null, $exclude_fields = null)
-    {
-        $response = $this->getFacebookAdReportWithHttpInfo($outreach_id, $fields, $exclude_fields);
-        return $response;
-    }
-
-    public function getFacebookAdReportWithHttpInfo($outreach_id, $fields = null, $exclude_fields = null)
-    {
-        $request = $this->getFacebookAdReportRequest($outreach_id, $fields, $exclude_fields);
-
-        try {
-            $options = $this->createHttpClientOption();
-            try {
-                $response = $this->client->send($request, $options);
-            } catch (RequestException $e) {
-                throw $e;
-            }
-
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode < 200 || $statusCode > 299) {
-                throw new ApiException(
-                    sprintf(
-                        '[%d] Error connecting to the API (%s)',
-                        $statusCode,
-                        $request->getUri()
-                    ),
-                    $statusCode,
-                    $response->getHeaders(),
-                    $response->getBody()
-                );
-            }
-
-            $responseBody = $response->getBody();
-            $content = $responseBody->getContents();
-            $content = json_decode($content);
-
-            return $content;
-
-        } catch (ApiException $e) {
-            throw $e->getResponseBody();
-        }
-    }
-
-    protected function getFacebookAdReportRequest($outreach_id, $fields = null, $exclude_fields = null)
-    {
-        // verify the required parameter 'outreach_id' is set
-        if ($outreach_id === null || (is_array($outreach_id) && count($outreach_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $outreach_id when calling '
-            );
-        }
-
-        $resourcePath = '/reporting/facebook-ads/{outreach_id}';
-        $formParams = [];
-        $queryParams = [];
-        $headerParams = [];
-        $httpBody = '';
-        $multipart = false;
-        // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
-        }
-        // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
-
         // path params
-        if ($outreach_id !== null) {
+        if ($audience_id !== null) {
             $resourcePath = str_replace(
-                '{' . 'outreach_id' . '}',
-                ObjectSerializer::toPathValue($outreach_id),
+                '{' . 'audience_id' . '}',
+                ObjectSerializer::toPathValue($audience_id),
                 $resourcePath
             );
         }
@@ -387,15 +593,15 @@ class ReportingApi
         );
     }
 
-    public function getFacebookAdProductActivityReport($outreach_id, $fields = null, $exclude_fields = null, $count = '10', $offset = '0', $sort_field = null)
+    public function listAudiences($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
     {
-        $response = $this->getFacebookAdProductActivityReportWithHttpInfo($outreach_id, $fields, $exclude_fields, $count, $offset, $sort_field);
+        $response = $this->listAudiencesWithHttpInfo($fields, $exclude_fields, $count, $offset);
         return $response;
     }
 
-    public function getFacebookAdProductActivityReportWithHttpInfo($outreach_id, $fields = null, $exclude_fields = null, $count = '10', $offset = '0', $sort_field = null)
+    public function listAudiencesWithHttpInfo($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
     {
-        $request = $this->getFacebookAdProductActivityReportRequest($outreach_id, $fields, $exclude_fields, $count, $offset, $sort_field);
+        $request = $this->listAudiencesRequest($fields, $exclude_fields, $count, $offset);
 
         try {
             $options = $this->createHttpClientOption();
@@ -431,189 +637,14 @@ class ReportingApi
         }
     }
 
-    protected function getFacebookAdProductActivityReportRequest($outreach_id, $fields = null, $exclude_fields = null, $count = '10', $offset = '0', $sort_field = null)
-    {
-        // verify the required parameter 'outreach_id' is set
-        if ($outreach_id === null || (is_array($outreach_id) && count($outreach_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $outreach_id when calling '
-            );
-        }
-        if ($count !== null && $count > 1000) {
-            throw new \InvalidArgumentException('invalid value for "$count" when calling ReportingApi., must be smaller than or equal to 1000.');
-        }
-
-
-        $resourcePath = '/reporting/facebook-ads/{outreach_id}/ecommerce-product-activity';
-        $formParams = [];
-        $queryParams = [];
-        $headerParams = [];
-        $httpBody = '';
-        $multipart = false;
-        // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
-        }
-        // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
-        // query params
-        if ($count !== null) {
-            $queryParams['count'] = ObjectSerializer::toQueryValue($count);
-        }
-        // query params
-        if ($offset !== null) {
-            $queryParams['offset'] = ObjectSerializer::toQueryValue($offset);
-        }
-        // query params
-        if ($sort_field !== null) {
-            $queryParams['sort_field'] = ObjectSerializer::toQueryValue($sort_field);
-        }
-
-        // path params
-        if ($outreach_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'outreach_id' . '}',
-                ObjectSerializer::toPathValue($outreach_id),
-                $resourcePath
-            );
-        }
-
-        // body params
-        $_tempBody = null;
-
-        if ($multipart) {
-            $headers = $this->headerSelector->selectHeadersForMultipart(
-                ['application/json', 'application/problem+json']
-            );
-        } else {
-            $headers = $this->headerSelector->selectHeaders(
-                ['application/json', 'application/problem+json'],
-                ['application/json']
-            );
-        }
-
-        // for model (json/xml)
-        if (isset($_tempBody)) {
-            $httpBody = $_tempBody;
-
-            if($headers['Content-Type'] === 'application/json') {
-                if ($httpBody instanceof \stdClass) {
-                    $httpBody = \GuzzleHttp\json_encode($httpBody);
-                }
-                if (is_array($httpBody)) {
-                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
-                }
-            }
-        } elseif (count($formParams) > 0) {
-            if ($multipart) {
-                $multipartContents = [];
-                foreach ($formParams as $formParamName => $formParamValue) {
-                    $multipartContents[] = [
-                        'name' => $formParamName,
-                        'contents' => $formParamValue
-                    ];
-                }
-                $httpBody = new MultipartStream($multipartContents);
-
-            } elseif ($headers['Content-Type'] === 'application/json') {
-                $httpBody = \GuzzleHttp\json_encode($formParams);
-
-            } else {
-                $httpBody = Query::build($formParams);
-            }
-        }
-
-
-        // Basic Authentication
-        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
-            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
-        }
-
-        // OAuth Authentication
-        if (!empty($this->config->getAccessToken())) {
-            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        $defaultHeaders = [];
-        if ($this->config->getUserAgent()) {
-            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
-        }
-
-        $headers = array_merge(
-            $defaultHeaders,
-            $headerParams,
-            $headers
-        );
-
-        $query = Query::build($queryParams);
-        return new Request(
-            'GET',
-            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
-            $headers,
-            $httpBody
-        );
-    }
-
-    public function getLandingPageReportsAll($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
-    {
-        $response = $this->getLandingPageReportsAllWithHttpInfo($fields, $exclude_fields, $count, $offset);
-        return $response;
-    }
-
-    public function getLandingPageReportsAllWithHttpInfo($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
-    {
-        $request = $this->getLandingPageReportsAllRequest($fields, $exclude_fields, $count, $offset);
-
-        try {
-            $options = $this->createHttpClientOption();
-            try {
-                $response = $this->client->send($request, $options);
-            } catch (RequestException $e) {
-                throw $e;
-            }
-
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode < 200 || $statusCode > 299) {
-                throw new ApiException(
-                    sprintf(
-                        '[%d] Error connecting to the API (%s)',
-                        $statusCode,
-                        $request->getUri()
-                    ),
-                    $statusCode,
-                    $response->getHeaders(),
-                    $response->getBody()
-                );
-            }
-
-            $responseBody = $response->getBody();
-            $content = $responseBody->getContents();
-            $content = json_decode($content);
-
-            return $content;
-
-        } catch (ApiException $e) {
-            throw $e->getResponseBody();
-        }
-    }
-
-    protected function getLandingPageReportsAllRequest($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
+    protected function listAudiencesRequest($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
     {
         if ($count !== null && $count > 1000) {
-            throw new \InvalidArgumentException('invalid value for "$count" when calling ReportingApi., must be smaller than or equal to 1000.');
+            throw new \InvalidArgumentException('invalid value for "$count" when calling ContactsApi., must be smaller than or equal to 1000.');
         }
 
 
-        $resourcePath = '/reporting/landing-pages';
+        $resourcePath = '/audiences';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -719,15 +750,15 @@ class ReportingApi
         );
     }
 
-    public function getLandingPageReport($outreach_id, $fields = null, $exclude_fields = null)
+    public function getAudienceId($audience_id, $fields = null, $exclude_fields = null)
     {
-        $response = $this->getLandingPageReportWithHttpInfo($outreach_id, $fields, $exclude_fields);
+        $response = $this->getAudienceIdWithHttpInfo($audience_id, $fields, $exclude_fields);
         return $response;
     }
 
-    public function getLandingPageReportWithHttpInfo($outreach_id, $fields = null, $exclude_fields = null)
+    public function getAudienceIdWithHttpInfo($audience_id, $fields = null, $exclude_fields = null)
     {
-        $request = $this->getLandingPageReportRequest($outreach_id, $fields, $exclude_fields);
+        $request = $this->getAudienceIdRequest($audience_id, $fields, $exclude_fields);
 
         try {
             $options = $this->createHttpClientOption();
@@ -763,16 +794,16 @@ class ReportingApi
         }
     }
 
-    protected function getLandingPageReportRequest($outreach_id, $fields = null, $exclude_fields = null)
+    protected function getAudienceIdRequest($audience_id, $fields = null, $exclude_fields = null)
     {
-        // verify the required parameter 'outreach_id' is set
-        if ($outreach_id === null || (is_array($outreach_id) && count($outreach_id) === 0)) {
+        // verify the required parameter 'audience_id' is set
+        if ($audience_id === null || (is_array($audience_id) && count($audience_id) === 0)) {
             throw new \InvalidArgumentException(
-                'Missing the required parameter $outreach_id when calling '
+                'Missing the required parameter $audience_id when calling '
             );
         }
 
-        $resourcePath = '/reporting/landing-pages/{outreach_id}';
+        $resourcePath = '/audiences/{audience_id}';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
@@ -794,10 +825,10 @@ class ReportingApi
         }
 
         // path params
-        if ($outreach_id !== null) {
+        if ($audience_id !== null) {
             $resourcePath = str_replace(
-                '{' . 'outreach_id' . '}',
-                ObjectSerializer::toPathValue($outreach_id),
+                '{' . 'audience_id' . '}',
+                ObjectSerializer::toPathValue($audience_id),
                 $resourcePath
             );
         }
@@ -878,15 +909,15 @@ class ReportingApi
         );
     }
 
-    public function getSurveyReportsAll($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
+    public function patchAudienceContact($body, $audience_id, $contact_id, $merge_field_validation_mode = null, $data_mode = null)
     {
-        $response = $this->getSurveyReportsAllWithHttpInfo($fields, $exclude_fields, $count, $offset);
+        $response = $this->patchAudienceContactWithHttpInfo($body, $audience_id, $contact_id, $merge_field_validation_mode, $data_mode);
         return $response;
     }
 
-    public function getSurveyReportsAllWithHttpInfo($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
+    public function patchAudienceContactWithHttpInfo($body, $audience_id, $contact_id, $merge_field_validation_mode = null, $data_mode = null)
     {
-        $request = $this->getSurveyReportsAllRequest($fields, $exclude_fields, $count, $offset);
+        $request = $this->patchAudienceContactRequest($body, $audience_id, $contact_id, $merge_field_validation_mode, $data_mode);
 
         try {
             $options = $this->createHttpClientOption();
@@ -922,45 +953,64 @@ class ReportingApi
         }
     }
 
-    protected function getSurveyReportsAllRequest($fields = null, $exclude_fields = null, $count = '10', $offset = '0')
+    protected function patchAudienceContactRequest($body, $audience_id, $contact_id, $merge_field_validation_mode = null, $data_mode = null)
     {
-        if ($count !== null && $count > 1000) {
-            throw new \InvalidArgumentException('invalid value for "$count" when calling ReportingApi., must be smaller than or equal to 1000.');
+        // verify the required parameter 'body' is set
+        if ($body === null || (is_array($body) && count($body) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $body when calling '
+            );
+        }
+        // verify the required parameter 'audience_id' is set
+        if ($audience_id === null || (is_array($audience_id) && count($audience_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $audience_id when calling '
+            );
+        }
+        // verify the required parameter 'contact_id' is set
+        if ($contact_id === null || (is_array($contact_id) && count($contact_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $contact_id when calling '
+            );
         }
 
-
-        $resourcePath = '/reporting/surveys';
+        $resourcePath = '/audiences/{audience_id}/contacts/{contact_id}';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
         $multipart = false;
         // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
+        if ($merge_field_validation_mode !== null) {
+            $queryParams['merge_field_validation_mode'] = ObjectSerializer::toQueryValue($merge_field_validation_mode);
         }
         // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
-        // query params
-        if ($count !== null) {
-            $queryParams['count'] = ObjectSerializer::toQueryValue($count);
-        }
-        // query params
-        if ($offset !== null) {
-            $queryParams['offset'] = ObjectSerializer::toQueryValue($offset);
+        if ($data_mode !== null) {
+            $queryParams['data_mode'] = ObjectSerializer::toQueryValue($data_mode);
         }
 
+        // path params
+        if ($audience_id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'audience_id' . '}',
+                ObjectSerializer::toPathValue($audience_id),
+                $resourcePath
+            );
+        }
+        // path params
+        if ($contact_id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'contact_id' . '}',
+                ObjectSerializer::toPathValue($contact_id),
+                $resourcePath
+            );
+        }
 
         // body params
         $_tempBody = null;
+        if (isset($body)) {
+            $_tempBody = $body;
+        }
 
         if ($multipart) {
             $headers = $this->headerSelector->selectHeadersForMultipart(
@@ -1028,22 +1078,21 @@ class ReportingApi
 
         $query = Query::build($queryParams);
         return new Request(
-            'GET',
+            'PATCH',
             $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody
         );
     }
 
-    public function getSurveyReport($survey_id, $fields = null, $exclude_fields = null)
+    public function archiveContact($audience_id, $contact_id)
     {
-        $response = $this->getSurveyReportWithHttpInfo($survey_id, $fields, $exclude_fields);
-        return $response;
+        $this->archiveContactWithHttpInfo($audience_id, $contact_id);
     }
 
-    public function getSurveyReportWithHttpInfo($survey_id, $fields = null, $exclude_fields = null)
+    public function archiveContactWithHttpInfo($audience_id, $contact_id)
     {
-        $request = $this->getSurveyReportRequest($survey_id, $fields, $exclude_fields);
+        $request = $this->archiveContactRequest($audience_id, $contact_id);
 
         try {
             $options = $this->createHttpClientOption();
@@ -1079,41 +1128,41 @@ class ReportingApi
         }
     }
 
-    protected function getSurveyReportRequest($survey_id, $fields = null, $exclude_fields = null)
+    protected function archiveContactRequest($audience_id, $contact_id)
     {
-        // verify the required parameter 'survey_id' is set
-        if ($survey_id === null || (is_array($survey_id) && count($survey_id) === 0)) {
+        // verify the required parameter 'audience_id' is set
+        if ($audience_id === null || (is_array($audience_id) && count($audience_id) === 0)) {
             throw new \InvalidArgumentException(
-                'Missing the required parameter $survey_id when calling '
+                'Missing the required parameter $audience_id when calling '
+            );
+        }
+        // verify the required parameter 'contact_id' is set
+        if ($contact_id === null || (is_array($contact_id) && count($contact_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $contact_id when calling '
             );
         }
 
-        $resourcePath = '/reporting/surveys/{survey_id}';
+        $resourcePath = '/audiences/{audience_id}/contacts/{contact_id}/actions/archive';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
         $multipart = false;
-        // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
-        }
-        // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
 
         // path params
-        if ($survey_id !== null) {
+        if ($audience_id !== null) {
             $resourcePath = str_replace(
-                '{' . 'survey_id' . '}',
-                ObjectSerializer::toPathValue($survey_id),
+                '{' . 'audience_id' . '}',
+                ObjectSerializer::toPathValue($audience_id),
+                $resourcePath
+            );
+        }
+        // path params
+        if ($contact_id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'contact_id' . '}',
+                ObjectSerializer::toPathValue($contact_id),
                 $resourcePath
             );
         }
@@ -1187,22 +1236,21 @@ class ReportingApi
 
         $query = Query::build($queryParams);
         return new Request(
-            'GET',
+            'POST',
             $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody
         );
     }
 
-    public function getSurveyQuestionReportsAll($survey_id, $fields = null, $exclude_fields = null)
+    public function forgetContact($audience_id, $contact_id)
     {
-        $response = $this->getSurveyQuestionReportsAllWithHttpInfo($survey_id, $fields, $exclude_fields);
-        return $response;
+        $this->forgetContactWithHttpInfo($audience_id, $contact_id);
     }
 
-    public function getSurveyQuestionReportsAllWithHttpInfo($survey_id, $fields = null, $exclude_fields = null)
+    public function forgetContactWithHttpInfo($audience_id, $contact_id)
     {
-        $request = $this->getSurveyQuestionReportsAllRequest($survey_id, $fields, $exclude_fields);
+        $request = $this->forgetContactRequest($audience_id, $contact_id);
 
         try {
             $options = $this->createHttpClientOption();
@@ -1238,41 +1286,41 @@ class ReportingApi
         }
     }
 
-    protected function getSurveyQuestionReportsAllRequest($survey_id, $fields = null, $exclude_fields = null)
+    protected function forgetContactRequest($audience_id, $contact_id)
     {
-        // verify the required parameter 'survey_id' is set
-        if ($survey_id === null || (is_array($survey_id) && count($survey_id) === 0)) {
+        // verify the required parameter 'audience_id' is set
+        if ($audience_id === null || (is_array($audience_id) && count($audience_id) === 0)) {
             throw new \InvalidArgumentException(
-                'Missing the required parameter $survey_id when calling '
+                'Missing the required parameter $audience_id when calling '
+            );
+        }
+        // verify the required parameter 'contact_id' is set
+        if ($contact_id === null || (is_array($contact_id) && count($contact_id) === 0)) {
+            throw new \InvalidArgumentException(
+                'Missing the required parameter $contact_id when calling '
             );
         }
 
-        $resourcePath = '/reporting/surveys/{survey_id}/questions';
+        $resourcePath = '/audiences/{audience_id}/contacts/{contact_id}/actions/forget';
         $formParams = [];
         $queryParams = [];
         $headerParams = [];
         $httpBody = '';
         $multipart = false;
-        // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
-        }
-        // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
 
         // path params
-        if ($survey_id !== null) {
+        if ($audience_id !== null) {
             $resourcePath = str_replace(
-                '{' . 'survey_id' . '}',
-                ObjectSerializer::toPathValue($survey_id),
+                '{' . 'audience_id' . '}',
+                ObjectSerializer::toPathValue($audience_id),
+                $resourcePath
+            );
+        }
+        // path params
+        if ($contact_id !== null) {
+            $resourcePath = str_replace(
+                '{' . 'contact_id' . '}',
+                ObjectSerializer::toPathValue($contact_id),
                 $resourcePath
             );
         }
@@ -1346,687 +1394,7 @@ class ReportingApi
 
         $query = Query::build($queryParams);
         return new Request(
-            'GET',
-            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
-            $headers,
-            $httpBody
-        );
-    }
-
-    public function getSurveyQuestionReport($survey_id, $question_id, $fields = null, $exclude_fields = null)
-    {
-        $response = $this->getSurveyQuestionReportWithHttpInfo($survey_id, $question_id, $fields, $exclude_fields);
-        return $response;
-    }
-
-    public function getSurveyQuestionReportWithHttpInfo($survey_id, $question_id, $fields = null, $exclude_fields = null)
-    {
-        $request = $this->getSurveyQuestionReportRequest($survey_id, $question_id, $fields, $exclude_fields);
-
-        try {
-            $options = $this->createHttpClientOption();
-            try {
-                $response = $this->client->send($request, $options);
-            } catch (RequestException $e) {
-                throw $e;
-            }
-
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode < 200 || $statusCode > 299) {
-                throw new ApiException(
-                    sprintf(
-                        '[%d] Error connecting to the API (%s)',
-                        $statusCode,
-                        $request->getUri()
-                    ),
-                    $statusCode,
-                    $response->getHeaders(),
-                    $response->getBody()
-                );
-            }
-
-            $responseBody = $response->getBody();
-            $content = $responseBody->getContents();
-            $content = json_decode($content);
-
-            return $content;
-
-        } catch (ApiException $e) {
-            throw $e->getResponseBody();
-        }
-    }
-
-    protected function getSurveyQuestionReportRequest($survey_id, $question_id, $fields = null, $exclude_fields = null)
-    {
-        // verify the required parameter 'survey_id' is set
-        if ($survey_id === null || (is_array($survey_id) && count($survey_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $survey_id when calling '
-            );
-        }
-        // verify the required parameter 'question_id' is set
-        if ($question_id === null || (is_array($question_id) && count($question_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $question_id when calling '
-            );
-        }
-
-        $resourcePath = '/reporting/surveys/{survey_id}/questions/{question_id}';
-        $formParams = [];
-        $queryParams = [];
-        $headerParams = [];
-        $httpBody = '';
-        $multipart = false;
-        // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
-        }
-        // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
-
-        // path params
-        if ($survey_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'survey_id' . '}',
-                ObjectSerializer::toPathValue($survey_id),
-                $resourcePath
-            );
-        }
-        // path params
-        if ($question_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'question_id' . '}',
-                ObjectSerializer::toPathValue($question_id),
-                $resourcePath
-            );
-        }
-
-        // body params
-        $_tempBody = null;
-
-        if ($multipart) {
-            $headers = $this->headerSelector->selectHeadersForMultipart(
-                ['application/json', 'application/problem+json']
-            );
-        } else {
-            $headers = $this->headerSelector->selectHeaders(
-                ['application/json', 'application/problem+json'],
-                ['application/json']
-            );
-        }
-
-        // for model (json/xml)
-        if (isset($_tempBody)) {
-            $httpBody = $_tempBody;
-
-            if($headers['Content-Type'] === 'application/json') {
-                if ($httpBody instanceof \stdClass) {
-                    $httpBody = \GuzzleHttp\json_encode($httpBody);
-                }
-                if (is_array($httpBody)) {
-                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
-                }
-            }
-        } elseif (count($formParams) > 0) {
-            if ($multipart) {
-                $multipartContents = [];
-                foreach ($formParams as $formParamName => $formParamValue) {
-                    $multipartContents[] = [
-                        'name' => $formParamName,
-                        'contents' => $formParamValue
-                    ];
-                }
-                $httpBody = new MultipartStream($multipartContents);
-
-            } elseif ($headers['Content-Type'] === 'application/json') {
-                $httpBody = \GuzzleHttp\json_encode($formParams);
-
-            } else {
-                $httpBody = Query::build($formParams);
-            }
-        }
-
-
-        // Basic Authentication
-        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
-            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
-        }
-
-        // OAuth Authentication
-        if (!empty($this->config->getAccessToken())) {
-            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        $defaultHeaders = [];
-        if ($this->config->getUserAgent()) {
-            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
-        }
-
-        $headers = array_merge(
-            $defaultHeaders,
-            $headerParams,
-            $headers
-        );
-
-        $query = Query::build($queryParams);
-        return new Request(
-            'GET',
-            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
-            $headers,
-            $httpBody
-        );
-    }
-
-    public function getSurveyQuestionAnswers($survey_id, $question_id, $fields = null, $exclude_fields = null, $respondent_familiarity_is = null)
-    {
-        $response = $this->getSurveyQuestionAnswersWithHttpInfo($survey_id, $question_id, $fields, $exclude_fields, $respondent_familiarity_is);
-        return $response;
-    }
-
-    public function getSurveyQuestionAnswersWithHttpInfo($survey_id, $question_id, $fields = null, $exclude_fields = null, $respondent_familiarity_is = null)
-    {
-        $request = $this->getSurveyQuestionAnswersRequest($survey_id, $question_id, $fields, $exclude_fields, $respondent_familiarity_is);
-
-        try {
-            $options = $this->createHttpClientOption();
-            try {
-                $response = $this->client->send($request, $options);
-            } catch (RequestException $e) {
-                throw $e;
-            }
-
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode < 200 || $statusCode > 299) {
-                throw new ApiException(
-                    sprintf(
-                        '[%d] Error connecting to the API (%s)',
-                        $statusCode,
-                        $request->getUri()
-                    ),
-                    $statusCode,
-                    $response->getHeaders(),
-                    $response->getBody()
-                );
-            }
-
-            $responseBody = $response->getBody();
-            $content = $responseBody->getContents();
-            $content = json_decode($content);
-
-            return $content;
-
-        } catch (ApiException $e) {
-            throw $e->getResponseBody();
-        }
-    }
-
-    protected function getSurveyQuestionAnswersRequest($survey_id, $question_id, $fields = null, $exclude_fields = null, $respondent_familiarity_is = null)
-    {
-        // verify the required parameter 'survey_id' is set
-        if ($survey_id === null || (is_array($survey_id) && count($survey_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $survey_id when calling '
-            );
-        }
-        // verify the required parameter 'question_id' is set
-        if ($question_id === null || (is_array($question_id) && count($question_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $question_id when calling '
-            );
-        }
-
-        $resourcePath = '/reporting/surveys/{survey_id}/questions/{question_id}/answers';
-        $formParams = [];
-        $queryParams = [];
-        $headerParams = [];
-        $httpBody = '';
-        $multipart = false;
-        // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
-        }
-        // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
-        // query params
-        if ($respondent_familiarity_is !== null) {
-            $queryParams['respondent_familiarity_is'] = ObjectSerializer::toQueryValue($respondent_familiarity_is);
-        }
-
-        // path params
-        if ($survey_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'survey_id' . '}',
-                ObjectSerializer::toPathValue($survey_id),
-                $resourcePath
-            );
-        }
-        // path params
-        if ($question_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'question_id' . '}',
-                ObjectSerializer::toPathValue($question_id),
-                $resourcePath
-            );
-        }
-
-        // body params
-        $_tempBody = null;
-
-        if ($multipart) {
-            $headers = $this->headerSelector->selectHeadersForMultipart(
-                ['application/json', 'application/problem+json']
-            );
-        } else {
-            $headers = $this->headerSelector->selectHeaders(
-                ['application/json', 'application/problem+json'],
-                ['application/json']
-            );
-        }
-
-        // for model (json/xml)
-        if (isset($_tempBody)) {
-            $httpBody = $_tempBody;
-
-            if($headers['Content-Type'] === 'application/json') {
-                if ($httpBody instanceof \stdClass) {
-                    $httpBody = \GuzzleHttp\json_encode($httpBody);
-                }
-                if (is_array($httpBody)) {
-                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
-                }
-            }
-        } elseif (count($formParams) > 0) {
-            if ($multipart) {
-                $multipartContents = [];
-                foreach ($formParams as $formParamName => $formParamValue) {
-                    $multipartContents[] = [
-                        'name' => $formParamName,
-                        'contents' => $formParamValue
-                    ];
-                }
-                $httpBody = new MultipartStream($multipartContents);
-
-            } elseif ($headers['Content-Type'] === 'application/json') {
-                $httpBody = \GuzzleHttp\json_encode($formParams);
-
-            } else {
-                $httpBody = Query::build($formParams);
-            }
-        }
-
-
-        // Basic Authentication
-        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
-            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
-        }
-
-        // OAuth Authentication
-        if (!empty($this->config->getAccessToken())) {
-            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        $defaultHeaders = [];
-        if ($this->config->getUserAgent()) {
-            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
-        }
-
-        $headers = array_merge(
-            $defaultHeaders,
-            $headerParams,
-            $headers
-        );
-
-        $query = Query::build($queryParams);
-        return new Request(
-            'GET',
-            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
-            $headers,
-            $httpBody
-        );
-    }
-
-    public function getSurveyResponsesAll($survey_id, $fields = null, $exclude_fields = null, $answered_question = null, $chose_answer = null, $respondent_familiarity_is = null)
-    {
-        $response = $this->getSurveyResponsesAllWithHttpInfo($survey_id, $fields, $exclude_fields, $answered_question, $chose_answer, $respondent_familiarity_is);
-        return $response;
-    }
-
-    public function getSurveyResponsesAllWithHttpInfo($survey_id, $fields = null, $exclude_fields = null, $answered_question = null, $chose_answer = null, $respondent_familiarity_is = null)
-    {
-        $request = $this->getSurveyResponsesAllRequest($survey_id, $fields, $exclude_fields, $answered_question, $chose_answer, $respondent_familiarity_is);
-
-        try {
-            $options = $this->createHttpClientOption();
-            try {
-                $response = $this->client->send($request, $options);
-            } catch (RequestException $e) {
-                throw $e;
-            }
-
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode < 200 || $statusCode > 299) {
-                throw new ApiException(
-                    sprintf(
-                        '[%d] Error connecting to the API (%s)',
-                        $statusCode,
-                        $request->getUri()
-                    ),
-                    $statusCode,
-                    $response->getHeaders(),
-                    $response->getBody()
-                );
-            }
-
-            $responseBody = $response->getBody();
-            $content = $responseBody->getContents();
-            $content = json_decode($content);
-
-            return $content;
-
-        } catch (ApiException $e) {
-            throw $e->getResponseBody();
-        }
-    }
-
-    protected function getSurveyResponsesAllRequest($survey_id, $fields = null, $exclude_fields = null, $answered_question = null, $chose_answer = null, $respondent_familiarity_is = null)
-    {
-        // verify the required parameter 'survey_id' is set
-        if ($survey_id === null || (is_array($survey_id) && count($survey_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $survey_id when calling '
-            );
-        }
-
-        $resourcePath = '/reporting/surveys/{survey_id}/responses';
-        $formParams = [];
-        $queryParams = [];
-        $headerParams = [];
-        $httpBody = '';
-        $multipart = false;
-        // query params
-        if (is_array($fields)) {
-            $queryParams['fields'] = ObjectSerializer::serializeCollection($fields, 'csv');
-        } else
-        if ($fields !== null) {
-            $queryParams['fields'] = ObjectSerializer::toQueryValue($fields);
-        }
-        // query params
-        if (is_array($exclude_fields)) {
-            $queryParams['exclude_fields'] = ObjectSerializer::serializeCollection($exclude_fields, 'csv');
-        } else
-        if ($exclude_fields !== null) {
-            $queryParams['exclude_fields'] = ObjectSerializer::toQueryValue($exclude_fields);
-        }
-        // query params
-        if ($answered_question !== null) {
-            $queryParams['answered_question'] = ObjectSerializer::toQueryValue($answered_question);
-        }
-        // query params
-        if ($chose_answer !== null) {
-            $queryParams['chose_answer'] = ObjectSerializer::toQueryValue($chose_answer);
-        }
-        // query params
-        if ($respondent_familiarity_is !== null) {
-            $queryParams['respondent_familiarity_is'] = ObjectSerializer::toQueryValue($respondent_familiarity_is);
-        }
-
-        // path params
-        if ($survey_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'survey_id' . '}',
-                ObjectSerializer::toPathValue($survey_id),
-                $resourcePath
-            );
-        }
-
-        // body params
-        $_tempBody = null;
-
-        if ($multipart) {
-            $headers = $this->headerSelector->selectHeadersForMultipart(
-                ['application/json', 'application/problem+json']
-            );
-        } else {
-            $headers = $this->headerSelector->selectHeaders(
-                ['application/json', 'application/problem+json'],
-                ['application/json']
-            );
-        }
-
-        // for model (json/xml)
-        if (isset($_tempBody)) {
-            $httpBody = $_tempBody;
-
-            if($headers['Content-Type'] === 'application/json') {
-                if ($httpBody instanceof \stdClass) {
-                    $httpBody = \GuzzleHttp\json_encode($httpBody);
-                }
-                if (is_array($httpBody)) {
-                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
-                }
-            }
-        } elseif (count($formParams) > 0) {
-            if ($multipart) {
-                $multipartContents = [];
-                foreach ($formParams as $formParamName => $formParamValue) {
-                    $multipartContents[] = [
-                        'name' => $formParamName,
-                        'contents' => $formParamValue
-                    ];
-                }
-                $httpBody = new MultipartStream($multipartContents);
-
-            } elseif ($headers['Content-Type'] === 'application/json') {
-                $httpBody = \GuzzleHttp\json_encode($formParams);
-
-            } else {
-                $httpBody = Query::build($formParams);
-            }
-        }
-
-
-        // Basic Authentication
-        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
-            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
-        }
-
-        // OAuth Authentication
-        if (!empty($this->config->getAccessToken())) {
-            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        $defaultHeaders = [];
-        if ($this->config->getUserAgent()) {
-            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
-        }
-
-        $headers = array_merge(
-            $defaultHeaders,
-            $headerParams,
-            $headers
-        );
-
-        $query = Query::build($queryParams);
-        return new Request(
-            'GET',
-            $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
-            $headers,
-            $httpBody
-        );
-    }
-
-    public function getSurveyResponse($survey_id, $response_id)
-    {
-        $response = $this->getSurveyResponseWithHttpInfo($survey_id, $response_id);
-        return $response;
-    }
-
-    public function getSurveyResponseWithHttpInfo($survey_id, $response_id)
-    {
-        $request = $this->getSurveyResponseRequest($survey_id, $response_id);
-
-        try {
-            $options = $this->createHttpClientOption();
-            try {
-                $response = $this->client->send($request, $options);
-            } catch (RequestException $e) {
-                throw $e;
-            }
-
-            $statusCode = $response->getStatusCode();
-
-            if ($statusCode < 200 || $statusCode > 299) {
-                throw new ApiException(
-                    sprintf(
-                        '[%d] Error connecting to the API (%s)',
-                        $statusCode,
-                        $request->getUri()
-                    ),
-                    $statusCode,
-                    $response->getHeaders(),
-                    $response->getBody()
-                );
-            }
-
-            $responseBody = $response->getBody();
-            $content = $responseBody->getContents();
-            $content = json_decode($content);
-
-            return $content;
-
-        } catch (ApiException $e) {
-            throw $e->getResponseBody();
-        }
-    }
-
-    protected function getSurveyResponseRequest($survey_id, $response_id)
-    {
-        // verify the required parameter 'survey_id' is set
-        if ($survey_id === null || (is_array($survey_id) && count($survey_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $survey_id when calling '
-            );
-        }
-        // verify the required parameter 'response_id' is set
-        if ($response_id === null || (is_array($response_id) && count($response_id) === 0)) {
-            throw new \InvalidArgumentException(
-                'Missing the required parameter $response_id when calling '
-            );
-        }
-
-        $resourcePath = '/reporting/surveys/{survey_id}/responses/{response_id}';
-        $formParams = [];
-        $queryParams = [];
-        $headerParams = [];
-        $httpBody = '';
-        $multipart = false;
-
-        // path params
-        if ($survey_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'survey_id' . '}',
-                ObjectSerializer::toPathValue($survey_id),
-                $resourcePath
-            );
-        }
-        // path params
-        if ($response_id !== null) {
-            $resourcePath = str_replace(
-                '{' . 'response_id' . '}',
-                ObjectSerializer::toPathValue($response_id),
-                $resourcePath
-            );
-        }
-
-        // body params
-        $_tempBody = null;
-
-        if ($multipart) {
-            $headers = $this->headerSelector->selectHeadersForMultipart(
-                ['application/json', 'application/problem+json']
-            );
-        } else {
-            $headers = $this->headerSelector->selectHeaders(
-                ['application/json', 'application/problem+json'],
-                ['application/json']
-            );
-        }
-
-        // for model (json/xml)
-        if (isset($_tempBody)) {
-            $httpBody = $_tempBody;
-
-            if($headers['Content-Type'] === 'application/json') {
-                if ($httpBody instanceof \stdClass) {
-                    $httpBody = \GuzzleHttp\json_encode($httpBody);
-                }
-                if (is_array($httpBody)) {
-                    $httpBody = \GuzzleHttp\json_encode(ObjectSerializer::sanitizeForSerialization($httpBody));
-                }
-            }
-        } elseif (count($formParams) > 0) {
-            if ($multipart) {
-                $multipartContents = [];
-                foreach ($formParams as $formParamName => $formParamValue) {
-                    $multipartContents[] = [
-                        'name' => $formParamName,
-                        'contents' => $formParamValue
-                    ];
-                }
-                $httpBody = new MultipartStream($multipartContents);
-
-            } elseif ($headers['Content-Type'] === 'application/json') {
-                $httpBody = \GuzzleHttp\json_encode($formParams);
-
-            } else {
-                $httpBody = Query::build($formParams);
-            }
-        }
-
-
-        // Basic Authentication
-        if (!empty($this->config->getUsername()) && !empty($this->config->getPassword())) {
-            $headers['Authorization'] = 'Basic ' . base64_encode($this->config->getUsername() . ":" . $this->config->getPassword());
-        }
-
-        // OAuth Authentication
-        if (!empty($this->config->getAccessToken())) {
-            $headers['Authorization'] = 'Bearer ' . $this->config->getAccessToken();
-        }
-
-        $defaultHeaders = [];
-        if ($this->config->getUserAgent()) {
-            $defaultHeaders['User-Agent'] = $this->config->getUserAgent();
-        }
-
-        $headers = array_merge(
-            $defaultHeaders,
-            $headerParams,
-            $headers
-        );
-
-        $query = Query::build($queryParams);
-        return new Request(
-            'GET',
+            'POST',
             $this->config->getHost() . $resourcePath . ($query ? "?{$query}" : ''),
             $headers,
             $httpBody
