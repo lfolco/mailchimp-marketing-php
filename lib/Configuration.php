@@ -76,7 +76,6 @@ class Configuration
     public $campaignFolders;
     public $campaigns;
     public $connectedSites;
-    public $audiencescontacts;
     public $conversations;
     public $customerJourneys;
     public $ecommerce;
